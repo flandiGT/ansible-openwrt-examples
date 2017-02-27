@@ -1,0 +1,12 @@
+---
+- hosts: my_openwrt_router
+  gather_facts: no
+
+  roles:
+    - role: openwrt-network
+      interfaces:
+        wan:
+          ifname: eth0
+          proto: pppoe
+          username: your_pppoe_username
+          password: your_pppoe_password

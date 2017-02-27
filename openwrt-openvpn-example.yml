@@ -1,0 +1,65 @@
+---
+- hosts: my_openwrt_router
+  gather_facts: no
+
+  pre_tasks:
+    - raw: opkg update && opkg install python -d ram && ln -snf /tmp/usr/bin/python /usr/bin/python
+
+  vars:
+    vpn_port: 1194
+
+  roles:
+    - role: openwrt-network
+      interfaces:
+        vpn:
+          ifname: tun0
+          proto: none
+          auto: True
+
+    - role: openwrt-firewall
+      zones:
+        - index: "{{ use_unused_index_for_this_zone }}"
+          network: vpn
+          forward: REJECT
+          input: ACCEPT
+          output: ACCEPT
+          masq: True
+      forwardings:
+        - index: "{{ use_unused_index_for_this_forwarding }}"
+          src: vpn
+          dest: wan
+        - index: "{{ use_unused_index_for_this_forwarding + 1 }}"
+          src: vpn
+          dest: lan
+        - index: "{{ use_unused_index_for_this_forwarding + 2 }}"
+          src: vpn
+          dest: dmz
+      rules:
+        - index: "{{ use_unused_index_for_this_rule }}"
+          name: accept_openvpn_inbound
+          src: '*'
+          proto: 'tcp udp'
+          family: ipv4
+          dest_port: "{{ vpn_port }}"
+          target: ACCEPT
+
+    - role: openwrt-openvpn
+      enabled: True
+      dev: tun
+      config_name: my_config_name
+      server_address: my.vpn.domain.name.net
+      port: "{{ vpn_port }}"
+      ca_key_size: 4096
+      ca_country: US
+      ca_province: CA
+      ca_locality: LA
+      ca_org: my.organisation
+      ca_email: my@email.net
+      ca_org_unit: my.org.unit
+      ca_common_name: my.common.name
+      clients:
+        - my.first.client
+
+  environment:
+    PATH: "/usr/sbin:/usr/bin:/sbin:/bin:/tmp/usr/bin/"
+    LD_LIBRARY_PATH: "/tmp/lib:/tmp/usr/lib"

@@ -1,0 +1,26 @@
+---
+- hosts: my_openwrt_router
+  gather_facts: no
+
+  roles:
+    - role: openwrt-wireless
+      wifi_devices:
+        - name: radio0
+          country: US
+          enabled: true
+        - name: radio1
+          country: US
+          enabled: true
+      wifi_ifaces:
+        - device: radio0
+          mode: ap
+          ssid: my_wifi_ssid
+          encryption: psk2+ccmp
+          key: my_secret_wifi_key
+          network: lan
+        - device: radio1
+          mode: ap
+          ssid: my_wifi_ssid
+          encryption: psk2+ccmp
+          key: my_secret_wifi_key
+          network: lan

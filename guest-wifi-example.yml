@@ -1,0 +1,46 @@
+---
+- hosts: my_openwrt_router
+  gather_facts: no
+
+  roles:
+    - role: openwrt-network
+      interfaces:
+        guest:
+          type: bridge
+          proto: static
+          ipaddr: 192.168.2.1
+          netmask: 255.255.255.0
+
+    - role: openwrt-wireless
+      wifi_devices:
+        - name: radio0
+          country: US
+          enabled: true
+      wifi_ifaces:
+        - device: radio0
+          mode: ap
+          ssid: your_guest_wifi_ssid
+          encryption: psk2+ccmp
+          key: your_not_so_secret_guest_wifi_key
+          isolate: True
+          network: guest
+
+    - role: openwrt-firewall
+      zones:
+        - index: "{{ use_unused_index_for_this_zone }}"
+          network: guest
+          forward: REJECT
+          input: ACCEPT
+          output: ACCEPT
+          masq: True
+      forwardings:
+        - index: "{{ use_unused_index_for_this_forwarding }}"
+          src: guest
+          dest: wan
+
+    - role: openwrt-dhcp
+      dhcp_configs:
+        - interface: guest
+          leasetime: 1h
+          limit: 150
+          start: 100

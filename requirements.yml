@@ -1,0 +1,30 @@
+---
+- src: https://github.com/flandiGT/openwrt-uci.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-system.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-wireless.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-network.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-firewall.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-dhcp.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-ddns.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-sqm.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-openvpn.git
+  scm: git
+
+- src: https://github.com/flandiGT/openwrt-ssh.git
+  scm: git
