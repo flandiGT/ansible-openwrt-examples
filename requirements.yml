@@ -28,3 +28,6 @@
 
 - src: https://github.com/flandiGT/openwrt-ssh.git
   scm: git
+
+- src: git@github.com:flandiGT/openwrt-tor.git
+  scm: git

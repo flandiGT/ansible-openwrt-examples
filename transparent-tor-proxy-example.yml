@@ -1,0 +1,76 @@
+---
+- hosts: my_openwrt_router
+  gather_facts: no
+
+  pre_tasks:
+    - raw: opkg update && opkg install python -d ram && ln -snf /tmp/usr/bin/python /usr/bin/python
+
+  vars:
+    tor_proxy_port: 9040
+    tor_dns_port: 9053
+    tor_server_ip: 192.168.33.1
+
+  roles:
+    - role: openwrt-network
+      interfaces:
+        tor:
+          type: bridge
+          proto: static
+          ipaddr: "{{tor_server_ip}}"
+          netmask: 255.255.255.0
+
+    - role: openwrt-firewall
+      zones:
+        - index: "{{ use_unused_index_for_this_zone }}"
+          network: tor
+          input: ACCEPT
+          output: ACCEPT
+          forward: REJECT
+          syn_flood: True
+          conntrack: True
+      rules:
+          # open the port of the DHCP-Server, so that the clients get an ip
+        - index: "{{ use_unused_index_for_this_rule }}"
+          name: accept_tor_dhcp_server_port
+          src: tor
+          proto: udp
+          dest_port: 67
+          target: ACCEPT
+          # TOR transparent-proxy-port (set in /etc/tor/torrc)
+        - index: "{{ use_unused_index_for_this_rule + 1}}"
+          name: accept_tor_transparent_proxy_port
+          src: tor
+          proto: tcp
+          dest_port: "{tor_proxy_port}}"
+          target: ACCEPT
+          # TOR DNS-proxy-port (set in /etc/tor/torrc)
+        - index: "{{ use_unused_index_for_this_rule + 2}}"
+          name: accept_tor_dns_proxy_port
+          src: tor
+          proto: udp
+          dest_port: "{{tor_dns_port}}"
+          target: ACCEPT
+      custom_rules:
+        - name: tor_proxy
+          content: "{{ lookup('file', './iptables/tor_proxy') }}"
+          reload: True
+
+    - role: openwrt-dhcp
+      dhcp_configs:
+        - interface: tor
+          leasetime: 24h
+          limit: 150
+          start: 100
+          noresolv: True
+          server:
+          - '127.0.0.1#{{tor_dns_port}}'
+
+    - role: openwrt-tor
+      dns_port: "{{tor_dns_port}}"
+      proxy_port: "{{tor_proxy_port}}"
+      server_address: "{{tor_server_ip}}"
+      network_address: "192.168.33.0/24"
+
+  environment:
+    PATH: "/usr/sbin:/usr/bin:/sbin:/bin:/tmp/usr/bin/"
+    LD_LIBRARY_PATH: "/tmp/lib:/tmp/usr/lib"

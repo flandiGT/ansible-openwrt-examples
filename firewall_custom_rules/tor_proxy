@@ -1,0 +1,2 @@
+iptables -t nat -A PREROUTING -i br-tor -p udp --dport 53 -j REDIRECT --to-ports {{tor_dns_port}}
+iptables -t nat -A PREROUTING -i br-tor -p tcp --syn -j REDIRECT --to-ports {{tor_proxy_port}}
